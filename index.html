@@ -1,25 +1,13 @@
 <!DOCTYPE html>
-<html>
+<html dir="rtl" lang="ar">
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
   <base href="/">
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="منصة عقار للعقارات">
-  <meta name="theme-color" content="#4CAF50">
+  <meta name="theme-color" content="#0B3D2E">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
@@ -32,16 +20,115 @@
 
   <title>عقار</title>
   <link rel="manifest" href="manifest.json">
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: #0B3D2E;
+      font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+    }
+    #app-loading {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      color: #E8F5EE;
+      text-align: center;
+      padding: 24px;
+      box-sizing: border-box;
+    }
+    #app-loading .spinner {
+      width: 34px;
+      height: 34px;
+      border: 3px solid rgba(232, 245, 238, 0.25);
+      border-top-color: #54DDB0;
+      border-radius: 50%;
+      animation: app-spin 0.9s linear infinite;
+    }
+    #app-loading .title { font-size: 18px; font-weight: 600; }
+    #app-loading .detail {
+      max-width: 520px;
+      font-size: 14px;
+      line-height: 1.7;
+      color: #ABC7B7;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    #app-loading.is-error .spinner { display: none; }
+    #app-loading.is-error .title { color: #FFB088; }
+    @keyframes app-spin { to { transform: rotate(360deg); } }
+  </style>
+
+  <script>
+    // يجعل الموقع يعمل من جذر النطاق أو من أي مجلد فرعي دون إعادة بناء،
+    // لأن كل مسارات Flutter (main.dart.js وcanvaskit والأصول) نسبية إلى <base>.
+    (function () {
+      try {
+        var base = document.querySelector('base');
+        var path = window.location.pathname;
+        var dir = path.endsWith('/')
+          ? path
+          : path.substring(0, path.lastIndexOf('/') + 1);
+        if (base && dir && dir !== base.getAttribute('href')) {
+          base.setAttribute('href', dir);
+        }
+      } catch (_) {}
+    })();
+
+    // إزالة أي service worker أو ذاكرة تخزين مؤقت من نسخة سابقة،
+    // لأنها قد تُبقي ملفات قديمة (أو ناقصة) وتُظهر شاشة بيضاء.
+    (function () {
+      try {
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(function (regs) {
+            regs.forEach(function (reg) { reg.unregister(); });
+          });
+        }
+        if (window.caches && caches.keys) {
+          caches.keys().then(function (keys) {
+            keys.forEach(function (key) { caches.delete(key); });
+          });
+        }
+      } catch (_) {}
+    })();
+
+    // إظهار أي فشل في التحميل بدل بقاء الصفحة بيضاء بلا تفسير.
+    (function () {
+      window.__aqarShowLoadError = function (message) {
+        var box = document.getElementById('app-loading');
+        if (!box) return;
+        box.classList.add('is-error');
+        box.querySelector('.title').textContent = 'تعذر تحميل التطبيق';
+        box.querySelector('.detail').textContent =
+          (message || 'حدث خطأ غير متوقع.') +
+          '\nجرّب تحديث الصفحة، وإذا استمرت المشكلة فأبلغ الدعم.';
+      };
+      window.addEventListener('error', function (event) {
+        var target = event && event.target;
+        if (target && target.tagName === 'SCRIPT') {
+          window.__aqarShowLoadError('فشل تحميل ملف: ' + (target.src || ''));
+        }
+      }, true);
+      window.addEventListener('unhandledrejection', function (event) {
+        var reason = event && event.reason;
+        window.__aqarShowLoadError(
+          reason && reason.message ? reason.message : String(reason || '')
+        );
+      });
+    })();
+  </script>
 </head>
 <body>
-  <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
-
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
-  -->
+  <div id="app-loading">
+    <div class="spinner"></div>
+    <div class="title">جارٍ تحميل تطبيق عقار...</div>
+    <div class="detail">قد يستغرق التحميل الأول بضع ثوانٍ.</div>
+  </div>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

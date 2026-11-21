@@ -33,10 +33,42 @@ addEventListener("message", eventListener);
 if (!window._flutter) {
   window._flutter = {};
 }
-_flutter.buildConfig = {"engineRevision":"42d3d75a56efe1a2e9902f52dc8006099c45d937","builds":[{"compileTarget":"dart2js","renderer":"canvaskit","mainJsPath":"main.dart.js"},{}]};
+_flutter.buildConfig = {"engineRevision":"42d3d75a56efe1a2e9902f52dc8006099c45d937","builds":[{"compileTarget":"dart2js","renderer":"canvaskit","mainJsPath":"main.dart.js"},{}],"useLocalCanvasKit":true};
 
-_flutter.loader.load({
-  serviceWorkerSettings: {
-    serviceWorkerVersion: "3855142759" /* Flutter's service worker is deprecated and will be removed in a future Flutter release. */
+
+(function () {
+  function reportError(error) {
+    if (typeof window.__aqarShowLoadError === 'function') {
+      var message = error && error.message ? error.message : String(error || '');
+      window.__aqarShowLoadError(message);
+    }
   }
-});
+
+  function hideLoading() {
+    var box = document.getElementById('app-loading');
+    if (box) box.remove();
+  }
+
+  try {
+    _flutter.loader.load({
+      config: {
+        // استخدام CanvasKit المستضاف مع الموقع بدل CDN الخارجي،
+        // لأن حجب gstatic.com يؤدي إلى شاشة بيضاء.
+        canvasKitBaseUrl: 'canvaskit/',
+      },
+      onEntrypointLoaded: async function (engineInitializer) {
+        try {
+          var appRunner = await engineInitializer.initializeEngine({
+            canvasKitBaseUrl: 'canvaskit/',
+          });
+          await appRunner.runApp();
+          hideLoading();
+        } catch (error) {
+          reportError(error);
+        }
+      },
+    });
+  } catch (error) {
+    reportError(error);
+  }
+})();
